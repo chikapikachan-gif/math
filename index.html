@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ねこの計算大冒険 児童用</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at top left, #fff3b0, transparent 35%),
+        radial-gradient(circle at bottom right, #bdefff, transparent 35%),
+        linear-gradient(180deg, #fffaf0, #e8f7ff);
+      color: #2f2f2f;
+      padding: 16px;
+    }
+    .wrap {
+      width: min(850px, 100%);
+      margin: 0 auto;
+      background: rgba(255,255,255,0.96);
+      border: 6px solid #ffd56a;
+      border-radius: 28px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.15);
+      overflow: hidden;
+    }
+    header {
+      padding: 18px 20px;
+      text-align: center;
+      background: linear-gradient(90deg, #ffdf75, #ffeeba);
+      border-bottom: 4px solid #ffc947;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(1.8rem, 5vw, 3rem);
+    }
+    .sub {
+      margin-top: 6px;
+      color: #6b5a2e;
+      font-weight: bold;
+    }
+    .main {
+      padding: 18px;
+    }
+    .panel {
+      background: #fffaf0;
+      border: 3px solid #ffe08a;
+      border-radius: 24px;
+      padding: 16px;
+    }
+    .level-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    @media (max-width: 700px) {
+      .level-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 480px) {
+      .level-grid { grid-template-columns: 1fr; }
+    }
+    button {
+      font-family: inherit;
+      font-weight: bold;
+      border: none;
+      border-radius: 16px;
+      padding: 12px 14px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.12s, filter 0.12s;
+    }
+    button:hover { transform: translateY(-1px); filter: brightness(0.98); }
+    .level {
+      background: #e9f5ff;
+      border: 3px solid #b7ddff;
+      color: #22445f;
+    }
+    .level.active {
+      background: #4aa3ff;
+      color: #fff;
+      border-color: #1f82df;
+    }
+    .mission {
+      text-align: center;
+      font-weight: bold;
+      color: #8a5b00;
+      margin: 8px 0 12px;
+      font-size: 1.1rem;
+    }
+    .stage {
+      position: relative;
+      min-height: 160px;
+      background: linear-gradient(180deg, #d9f7ff 0 55%, #c9f0be 55% 100%);
+      border: 4px solid #99d89b;
+      border-radius: 24px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+    .sun {
+      position: absolute;
+      right: 26px;
+      top: 18px;
+      font-size: 2.3rem;
+    }
+    .cloud {
+      position: absolute;
+      top: 28px;
+      left: 24px;
+      font-size: 2rem;
+      animation: float 4s infinite ease-in-out;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(18px); }
+    }
+    .cat {
+      position: absolute;
+      left: 6%;
+      bottom: 30px;
+      font-size: 3.5rem;
+      transition: left 0.5s, transform 0.2s;
+    }
+    .cat.jump { transform: translateY(-16px) rotate(-8deg); }
+    .goal {
+      position: absolute;
+      right: 24px;
+      bottom: 28px;
+      font-size: 3rem;
+    }
+    .ground {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      height: 28px;
+      width: 100%;
+      background: repeating-linear-gradient(90deg, #b98953 0 18px, #a9733d 18px 36px);
+    }
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+    .chip {
+      background: #fff;
+      border: 2px solid #e5e5e5;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-weight: bold;
+    }
+    .question-card {
+      text-align: center;
+      background: #fff;
+      border: 4px dashed #ffc947;
+      border-radius: 24px;
+      padding: 18px;
+    }
+    .question {
+      font-size: clamp(2.8rem, 10vw, 5.4rem);
+      font-weight: 900;
+      margin: 8px 0 12px;
+    }
+    .choices {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 10px 0;
+    }
+    @media (max-width: 520px) {
+      .choices { grid-template-columns: 1fr; }
+    }
+    .choice {
+      font-size: 2rem;
+      background: #fff;
+      border: 4px solid #9bd8ff;
+      min-height: 78px;
+    }
+    .choice.correct { background: #c9ffd0; border-color: #66d477; }
+    .choice.wrong { background: #ffe1e1; border-color: #ff9a9a; }
+    .choice:disabled { opacity: 0.8; cursor: default; }
+    .message {
+      min-height: 54px;
+      font-size: 1.4rem;
+      font-weight: 900;
+      margin-top: 10px;
+      color: #3f3f3f;
+    }
+    .actions {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .next { background: #ffcf5a; }
+    .reset { background: #ffdede; }
+    .hint-btn { background: #dff4ff; }
+    .small {
+      color: #667;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+    .boss {
+      background: #ffe5f0;
+      border: 3px solid #ffacd1;
+    }
+    .medal-box {
+      text-align: center;
+      margin-top: 12px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #6b4d00;
+      min-height: 34px;
+    }
+    .footer {
+      padding: 12px 18px 18px;
+      text-align: center;
+      color: #666;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>🐱 ねこの計算大冒険 🏰</h1>
+      <div class="sub">まちがえてもだいじょうぶ。1もんずつ進もう！</div>
+    </header>
+
+    <main class="main">
+      <section class="panel">
+        <div class="level-grid">
+          <button class="level active" onclick="setMode('add')">🌱 たし算</button>
+          <button class="level" onclick="setMode('sub')">🍀 ひき算</button>
+          <button class="level" onclick="setMode('mulEasy')">⭐ 九九入門</button>
+          <button class="level" onclick="setMode('mul')">🔥 かけ算</button>
+          <button class="level" onclick="setMode('mix')">🎲 ミックス</button>
+          <button class="level boss" onclick="setMode('boss')">👑 ボス戦</button>
+        </div>
+
+        <div class="mission" id="mission">ミッション：10問中、まずは3問正解をめざそう！</div>
+
+        <div class="stage">
+          <div class="sun">☀️</div>
+          <div class="cloud">☁️</div>
+          <div class="cat" id="cat">🐱</div>
+          <div class="goal">🏁</div>
+          <div class="ground"></div>
+        </div>
+
+        <div class="stats">
+          <span class="chip">問題 <span id="qNo">1</span>/10</span>
+          <span class="chip">正解 <span id="score">0</span></span>
+          <span class="chip">連続 <span id="streak">0</span></span>
+          <span class="chip">コイン 🪙<span id="coins">0</span></span>
+        </div>
+
+        <div class="question-card">
+          <div class="small" id="modeName">たし算</div>
+          <div class="question" id="question">1 + 1 = ?</div>
+          <div class="choices" id="choices"></div>
+          <div class="message" id="message">こたえをえらんでね</div>
+          <div class="actions">
+            <button class="hint-btn" onclick="showHint()">ヒント</button>
+            <button class="next" onclick="nextQuestion()">つぎへ</button>
+            <button class="reset" onclick="resetRound()">もう一回</button>
+          </div>
+        </div>
+
+        <div class="medal-box" id="medalBox"></div>
+      </section>
+    </main>
+
+    <div class="footer">
+      インターネットなしで使えます。
+    </div>
+  </div>
+
+  <script>
+    let mode = "add";
+    let answer = 0;
+    let qNo = 1;
+    let score = 0;
+    let streak = 0;
+    let coins = Number(localStorage.getItem("studentCatCalcCoins") || 0);
+    let answered = false;
+    let currentProblem = null;
+    const roundSize = 10;
+
+    const modeLabels = {
+      add: "たし算",
+      sub: "ひき算",
+      mulEasy: "九九入門：2・5・10の段",
+      mul: "かけ算",
+      mix: "ミックス",
+      boss: "ボス戦"
+    };
+
+    const praise = [
+      "すごい！できたね！",
+      "いいね！また1つ進んだよ！",
+      "ばっちり！",
+      "その調子！",
+      "やったね！ねこもよろこんでるよ！",
+      "ナイス計算！"
+    ];
+
+    const encourage = [
+      "おしい！もう一回見てみよう。",
+      "だいじょうぶ。まちがいは練習のチャンス！",
+      "ゆっくりでOK。もう一度チャレンジ！",
+      "考えたことがえらい！もう少しだよ。"
+    ];
+
+    function rand(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function pick(arr) {
+      return arr[rand(0, arr.length - 1)];
+    }
+
+    function setMode(newMode) {
+      mode = newMode;
+      document.querySelectorAll(".level").forEach(btn => btn.classList.remove("active"));
+      const buttons = Array.from(document.querySelectorAll(".level"));
+      const keys = ["add", "sub", "mulEasy", "mul", "mix", "boss"];
+      buttons[keys.indexOf(newMode)].classList.add("active");
+      resetRound();
+    }
+
+    function makeProblem() {
+      let type = mode;
+      if (mode === "mix" || mode === "boss") {
+        type = pick(["add", "sub", "mulEasy", "mul"]);
+      }
+
+      let a, b, op;
+      if (type === "add") {
+        a = rand(1, 9);
+        b = rand(1, 9);
+        op = "+";
+        answer = a + b;
+      } else if (type === "sub") {
+        a = rand(2, 18);
+        b = rand(0, a);
+        op = "−";
+        answer = a - b;
+      } else if (type === "mulEasy") {
+        a = pick([2, 5, 10]);
+        b = rand(1, 9);
+        op = "×";
+        answer = a * b;
+      } else {
+        a = rand(2, 9);
+        b = rand(1, 9);
+        op = "×";
+        answer = a * b;
+      }
+
+      currentProblem = {a, b, op, answer};
+      document.getElementById("modeName").textContent = modeLabels[mode];
+      document.getElementById("question").textContent = `${a} ${op} ${b} = ?`;
+      document.getElementById("message").textContent = "こたえをえらんでね";
+      answered = false;
+      makeChoices();
+      updateView();
+    }
+
+    function makeChoices() {
+      const choices = new Set([answer]);
+
+      while (choices.size < 3) {
+        const diff = pick([-5, -4, -3, 3, 4, 5, 6, -6]);
+        let wrong = answer + diff;
+        if (wrong < 0) wrong = rand(0, 10);
+        if (wrong !== answer) choices.add(wrong);
+      }
+
+      const shuffled = Array.from(choices).sort(() => Math.random() - 0.5);
+      const box = document.getElementById("choices");
+      box.innerHTML = "";
+      shuffled.forEach(num => {
+        const btn = document.createElement("button");
+        btn.className = "choice";
+        btn.textContent = num;
+        btn.onclick = () => checkAnswer(num, btn);
+        box.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(num, btn) {
+      if (answered) return;
+
+      if (num === answer) {
+        answered = true;
+        score++;
+        streak++;
+        coins += streak >= 3 ? 2 : 1;
+        localStorage.setItem("studentCatCalcCoins", coins);
+        btn.classList.add("correct");
+        document.querySelectorAll(".choice").forEach(b => b.disabled = true);
+        document.getElementById("message").textContent = pick(praise);
+        animateCat();
+        checkMedal();
+      } else {
+        streak = 0;
+        btn.classList.add("wrong");
+        btn.disabled = true;
+        document.getElementById("message").textContent = pick(encourage);
+      }
+      updateView();
+
+      if (answered && qNo >= roundSize) {
+        finishRound();
+      }
+    }
+
+    function showHint() {
+      if (!currentProblem) return;
+      const {a, b, op} = currentProblem;
+      let hint = "";
+      if (op === "+") {
+        hint = `${a}から、${b}つ進むといくつかな？`;
+      } else if (op === "−") {
+        hint = `${a}から、${b}つ戻るといくつかな？`;
+      } else {
+        hint = `${a}が${b}こ分。九九を思い出してみよう。`;
+      }
+      document.getElementById("message").textContent = "ヒント：" + hint;
+    }
+
+    function nextQuestion() {
+      if (qNo >= roundSize) {
+        resetRound();
+        return;
+      }
+      qNo++;
+      makeProblem();
+    }
+
+    function resetRound() {
+      qNo = 1;
+      score = 0;
+      streak = 0;
+      makeProblem();
+      document.getElementById("medalBox").textContent = "";
+    }
+
+    function finishRound() {
+      let msg = `ゴール！10問中${score}問正解！`;
+      if (score >= 8) msg += " 金メダル級！🎉";
+      else if (score >= 5) msg += " すごくがんばったね！";
+      else msg += " 最後まで取り組めたことがすばらしい！";
+      document.getElementById("message").textContent = msg;
+    }
+
+    function updateView() {
+      document.getElementById("qNo").textContent = qNo;
+      document.getElementById("score").textContent = score;
+      document.getElementById("streak").textContent = streak;
+      document.getElementById("coins").textContent = coins;
+      const progress = Math.min(90, 6 + (score / roundSize) * 84);
+      document.getElementById("cat").style.left = progress + "%";
+    }
+
+    function animateCat() {
+      const cat = document.getElementById("cat");
+      cat.classList.add("jump");
+      setTimeout(() => cat.classList.remove("jump"), 220);
+    }
+
+    function checkMedal() {
+      const medalBox = document.getElementById("medalBox");
+      if (score === 1) medalBox.textContent = "🏅 はじめの一歩メダル！";
+      if (streak === 3) medalBox.textContent = "🏅 3れんぞくメダル！";
+      if (score === 10) medalBox.textContent = "👑 パーフェクトメダル！";
+    }
+
+    makeProblem();
+  </script>
+</body>
+</html>
